@@ -1,36 +1,35 @@
-﻿# 🏥 Sanos-Salvos-Auth
+﻿# Sanos-Salvos-Auth
 
-Microservicio de autenticación y tokens JWT
+Microservicio de autenticacion y tokens JWT
 
 ## Puerto
-\\\
+
 8088
-\\\
 
 ## Base de datos
-\\\
+
 auth_db
-\\\
 
-## Endpoints
-\\\
-/api/auth/login, /api/auth/register, /api/auth/validate, /api/auth/validate-session
-\\\
+## Endpoints disponibles
 
-## Ejecución
+POST /api/auth/login
+POST /api/auth/register
+GET /api/auth/validate?token=
+GET /api/auth/validate-session
+POST /api/auth/refresh
 
-### Docker
-\\\ash
+## Ejecucion con Docker
+
 docker-compose up --build
-\\\
 
-### Manual
-\\\ash
+## Ejecucion manual
+
 mvn spring-boot:run
-\\\
 
-## Stack
+## Tecnologias
+
 - Java 21
 - Spring Boot 3.2
+- Spring Security + JWT
 - PostgreSQL
 - Docker
