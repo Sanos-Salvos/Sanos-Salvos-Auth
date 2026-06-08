@@ -1,6 +1,8 @@
 package com.sanos.auth.service;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -67,6 +69,18 @@ public class AuthService {
             return "{\"error\":\"User not found\"}";
         } catch (Exception e) {
             throw new RuntimeException("Failed to get user: " + e.getMessage());
+        }
+    }
+
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
+
+    public String validateTokenUsername(String token) {
+        try {
+            return jwtService.extractUsername(token);
+        } catch (Exception e) {
+            return null;
         }
     }
 }
