@@ -2,9 +2,9 @@ package com.sanos.auth.controller;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,45 +25,30 @@ public class TokenController {
         String password = body.get("password");
 
         if (username == null || password == null) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("error", "username and password are required");
-            return ResponseEntity.badRequest().body(error);
+            Map<String, Object> errorMap = new HashMap<>();
+            errorMap.put("error", "username and password are required");
+            return ResponseEntity.badRequest().body(errorMap);
         }
 
         String token = authService.authenticate(username, password);
         User user = authService.getUserByUsername(username);
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("token", token);
-        response.put("tipoToken", "Bearer");
-        response.put("username", username);
-        response.put("rol", user != null && user.getRoles() != null
-                ? user.getRoles().stream().findFirst().orElse("USER")
-                : "USER");
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(buildAuthResponse(token, username, user));
     }
 
     @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> register(@RequestBody User user) {
         User registered = authService.register(user);
-        Map<String, Object> response = new HashMap<>();
-        response.put("token", null);
-        response.put("tipoToken", null);
-        response.put("username", registered.getUsername());
-        response.put("rol", registered.getRoles() != null
-                ? registered.getRoles().stream().findFirst().orElse("USER")
-                : "USER");
-        return ResponseEntity.ok(response);
-    }
+        String token = authService.generateTokenForUser(registered);
 
-    @GetMapping("/validate")
-    public String validate(@RequestParam String token) {
-        return authService.validateToken(token);
+        return new ResponseEntity<>(buildAuthResponse(token, registered.getUsername(), registered), HttpStatus.CREATED);
     }
 
     @GetMapping("/validate-session")
-    public ResponseEntity<Boolean> validateSession(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<Boolean> validateSession(@RequestHeader(value = "Authorization", required = false) String token) {
+        if (token == null || !token.startsWith("Bearer ")) {
+            return ResponseEntity.ok(false);
+        }
         String cleanToken = token.replace("Bearer ", "");
         try {
             String username = authService.validateTokenUsername(cleanToken);
@@ -74,14 +59,31 @@ public class TokenController {
     }
 
     @PostMapping("/refresh")
-    public String refresh(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<?> refresh(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.badRequest().body("Missing or invalid Authorization header");
+        }
         String token = authHeader.replace("Bearer ", "");
-        return authService.refreshToken(token);
+        return ResponseEntity.ok(authService.refreshToken(token));
     }
 
     @GetMapping("/user")
-    public String getAuthenticatedUser(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<?> getAuthenticatedUser(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.badRequest().body("Missing or invalid Authorization header");
+        }
         String token = authHeader.replace("Bearer ", "");
-        return authService.getUserFromToken(token);
+        return ResponseEntity.ok(authService.getUserFromToken(token));
+    }
+
+    private Map<String, Object> buildAuthResponse(String token, String username, User user) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", token);
+        response.put("tipoToken", "Bearer");
+        response.put("username", username);
+        response.put("rol", user != null && user.getRoles() != null
+                ? user.getRoles().stream().findFirst().orElse("USER")
+                : "USER");
+        return response;
     }
 }

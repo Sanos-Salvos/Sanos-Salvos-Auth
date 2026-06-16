@@ -1,9 +1,0 @@
-com\sanos\auth\repository\UserRepository.class
-com\sanos\auth\config\KafkaConsumerConfig.class
-com\sanos\auth\config\SecurityConfig.class
-com\sanos\auth\SanosSalvosAuthApplication.class
-com\sanos\auth\model\User.class
-com\sanos\auth\config\JwtAuthenticationFilter.class
-com\sanos\auth\controller\TokenController.class
-com\sanos\auth\service\AuthService.class
-com\sanos\auth\service\JwtService.class

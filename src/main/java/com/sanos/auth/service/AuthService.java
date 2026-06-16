@@ -1,5 +1,6 @@
 package com.sanos.auth.service;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -32,8 +33,26 @@ public class AuthService {
     }
 
     public User register(User user) {
+        if (userRepository.existsByUsername(user.getUsername())) {
+            throw new IllegalArgumentException("The username '" + user.getUsername() + "' is already taken.");
+        }
+
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new IllegalArgumentException("The email '" + user.getEmail() + "' is already registered.");
+        }
+
+        if (user.getRoles() == null || user.getRoles().isEmpty()) {
+            Set<String> defaultRoles = new HashSet<>();
+            defaultRoles.add("ROLE_USER");
+            user.setRoles(defaultRoles);
+        }
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
+    }
+
+    public String generateTokenForUser(User user) {
+        return jwtService.generateToken(user.getUsername(), user.getRoles());
     }
 
     public String validateToken(String token) {
