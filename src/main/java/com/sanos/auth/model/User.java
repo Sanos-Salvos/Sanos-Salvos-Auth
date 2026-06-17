@@ -11,7 +11,7 @@ public class User {
     private Long id;
     private String username;
     private String email;
-    private String password;
+    private String passsword;
 
     @ElementCollection(fetch = FetchType.EAGER)
     private Set<String> roles;
